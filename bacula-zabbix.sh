@@ -46,48 +46,48 @@ baculaClientName=$($sql "select $clientName from Client,Job where Job.ClientId=C
 if [ -z "$baculaClientName" ] ; then exit 15 ; fi
 
 # Initialize return as zero
-return=0
+ret=0
 
 # send status message to zabbix server
 message=$(cat)
 if ! $zabbixSender -z "$zabbixSrvAddr" -p "$zabbixSrvPort" -s "$baculaClientName" -k "bacula.$level.job.message" -o "$message" >/dev/null 2>&1; then
-	return=$((return+1))
+	ret=$((ret+1))
 fi
 
 # Send Job exit status to Zabbix server
 if ! $zabbixSender -z "$zabbixSrvAddr" -p "$zabbixSrvPort" -s "$baculaClientName" -k "bacula.$level.job.status" -o "$status" >/dev/null 2>&1; then
-	return=$((return+2))
+	ret=$((ret+2))
 fi
 
 # Get from database the number of bytes transferred by the Job and send it to Zabbix server
 baculaJobBytes=$($sql "select JobBytes from Job where JobId=$baculaJobId;" 2>/dev/null)
 if ! $zabbixSender -z "$zabbixSrvAddr" -p "$zabbixSrvPort" -s "$baculaClientName" -k "bacula.$level.job.bytes" -o "$baculaJobBytes" >/dev/null 2>&1; then
-	return=$((return+4))
+	ret=$((ret+4))
 fi
 
 # Get from database the number of files transferred by the Job and send it to Zabbix server
 baculaJobFiles=$($sql "select JobFiles from Job where JobId=$baculaJobId;" 2>/dev/null)
 if ! $zabbixSender -z "$zabbixSrvAddr" -p "$zabbixSrvPort" -s "$baculaClientName" -k "bacula.$level.job.files" -o "$baculaJobFiles" >/dev/null 2>&1; then
-	return=$((return+8))
+	ret=$((ret+8))
 fi
 
 # Get from database the time spent by the Job and send it to Zabbix server
 baculaJobTime=$($sql "select timestampdiff(second,StartTime,EndTime) from Job where JobId=$baculaJobId;" 2>/dev/null)
 if ! $zabbixSender -z "$zabbixSrvAddr" -p "$zabbixSrvPort" -s "$baculaClientName" -k "bacula.$level.job.time" -o "$baculaJobTime" >/dev/null 2>&1; then
-	return=$((return+16))
+	ret=$((ret+16))
 fi
 
 # Get Job speed from database and send it to Zabbix server
 baculaJobSpeed=$($sql "select round(JobBytes/timestampdiff(second,StartTime,EndTime)/1024,2) from Job where JobId=$baculaJobId;" 2>/dev/null)
 if ! $zabbixSender -z "$zabbixSrvAddr" -p "$zabbixSrvPort" -s "$baculaClientName" -k "bacula.$level.job.speed" -o "$baculaJobSpeed" >/dev/null 2>&1; then
-	return=$((return+32))
+	ret=$((ret+32))
 fi
 
 # Get Job compression rate from database and send it to Zabbix server
 baculaJobCompr=$($sql "select round(1-JobBytes/ReadBytes,2) from Job where JobId=$baculaJobId;" 2>/dev/null)
 if ! $zabbixSender -z "$zabbixSrvAddr" -p "$zabbixSrvPort" -s "$baculaClientName" -k "bacula.$level.job.compr" -o "$baculaJobCompr" >/dev/null 2>&1; then
-	return=$((return+64))
+	ret=$((ret+64))
 fi
 
-# Exit with return status
-exit $return
+# Exit with ret status
+exit $ret
