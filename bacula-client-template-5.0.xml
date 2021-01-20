@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
-    <version>4.4</version>
-    <date>2020-05-05T17:40:57Z</date>
+    <version>5.0</version>
+    <date>2021-01-20T10:00:35Z</date>
     <groups>
         <group>
             <name>Templates</name>
@@ -9,8 +9,8 @@
     </groups>
     <templates>
         <template>
-            <template>Template Bacula</template>
-            <name>Template Bacula</name>
+            <template>Template App Bacula Client</template>
+            <name>Template App Bacula Client</name>
             <groups>
                 <group>
                     <name>Templates</name>
@@ -58,6 +58,19 @@
                     </applications>
                 </item>
                 <item>
+                    <name>Backup Differential Message</name>
+                    <type>TRAP</type>
+                    <key>bacula.diff.job.message</key>
+                    <delay>0</delay>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <applications>
+                        <application>
+                            <name>Bacula</name>
+                        </application>
+                    </applications>
+                </item>
+                <item>
                     <name>Backup Differential Speed</name>
                     <type>TRAP</type>
                     <key>bacula.diff.job.speed</key>
@@ -82,8 +95,13 @@
                     </applications>
                     <triggers>
                         <trigger>
-                            <expression>{last()}&gt;1</expression>
-                            <name>Backup Differential FAIL in {HOST.NAME}</name>
+                            <expression>{nodata(1209600)}=1</expression>
+                            <name>Bacula differential backup missing</name>
+                            <priority>AVERAGE</priority>
+                        </trigger>
+                        <trigger>
+                            <expression>{last()}&gt;0</expression>
+                            <name>Differential Backup warning or error on {HOST.NAME}</name>
                             <priority>AVERAGE</priority>
                         </trigger>
                     </triggers>
@@ -136,6 +154,19 @@
                     </applications>
                 </item>
                 <item>
+                    <name>Backup Full Message</name>
+                    <type>TRAP</type>
+                    <key>bacula.full.job.message</key>
+                    <delay>0</delay>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <applications>
+                        <application>
+                            <name>Bacula</name>
+                        </application>
+                    </applications>
+                </item>
+                <item>
                     <name>Backup Full Speed</name>
                     <type>TRAP</type>
                     <key>bacula.full.job.speed</key>
@@ -160,9 +191,14 @@
                     </applications>
                     <triggers>
                         <trigger>
-                            <expression>{last()}&gt;1</expression>
-                            <name>Backup Full FAIL in {HOST.NAME}</name>
-                            <priority>HIGH</priority>
+                            <expression>{nodata(2678400)}=1</expression>
+                            <name>Bacula full backup missing</name>
+                            <priority>AVERAGE</priority>
+                        </trigger>
+                        <trigger>
+                            <expression>{last()}&gt;0</expression>
+                            <name>Full Backup warning or error on {HOST.NAME}</name>
+                            <priority>AVERAGE</priority>
                         </trigger>
                     </triggers>
                 </item>
@@ -214,6 +250,19 @@
                     </applications>
                 </item>
                 <item>
+                    <name>Backup Incremental Message</name>
+                    <type>TRAP</type>
+                    <key>bacula.incr.job.message</key>
+                    <delay>0</delay>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                    <applications>
+                        <application>
+                            <name>Bacula</name>
+                        </application>
+                    </applications>
+                </item>
+                <item>
                     <name>Backup Incremental Speed</name>
                     <type>TRAP</type>
                     <key>bacula.incr.job.speed</key>
@@ -238,9 +287,14 @@
                     </applications>
                     <triggers>
                         <trigger>
-                            <expression>{last()}&gt;1</expression>
-                            <name>Backup Incremental FAIL in {HOST.NAME}</name>
-                            <priority>WARNING</priority>
+                            <expression>({dayofweek()}=3 or {dayofweek()}=4 or {dayofweek()}=5 or {dayofweek()}=6) and {nodata(90000)}=1</expression>
+                            <name>Bacula incremental backup missing</name>
+                            <priority>AVERAGE</priority>
+                        </trigger>
+                        <trigger>
+                            <expression>{last()}&gt;0</expression>
+                            <name>Incremental Backup warning or error on {HOST.NAME}</name>
+                            <priority>AVERAGE</priority>
                         </trigger>
                     </triggers>
                 </item>
@@ -257,24 +311,7 @@
                     </applications>
                 </item>
                 <item>
-                    <name>Bacula Director is running</name>
-                    <key>proc.num[{$BACULA.DIR}]</key>
-                    <delay>30s;50/1-7,00:00-24:00</delay>
-                    <applications>
-                        <application>
-                            <name>Bacula</name>
-                        </application>
-                    </applications>
-                    <triggers>
-                        <trigger>
-                            <expression>{last()}=0</expression>
-                            <name>Bacula Director is DOWN in {HOST.NAME}</name>
-                            <priority>DISASTER</priority>
-                        </trigger>
-                    </triggers>
-                </item>
-                <item>
-                    <name>Bacula File is running</name>
+                    <name>Bacula File Daemon is running</name>
                     <key>proc.num[{$BACULA.FD}]</key>
                     <delay>30s;50s/1-7,00:00-24:00</delay>
                     <applications>
@@ -285,25 +322,8 @@
                     <triggers>
                         <trigger>
                             <expression>{last()}=0</expression>
-                            <name>Bacula File is DOWN in {HOST.NAME}</name>
-                            <priority>HIGH</priority>
-                        </trigger>
-                    </triggers>
-                </item>
-                <item>
-                    <name>Bacula Storage is running</name>
-                    <key>proc.num[{$BACULA.SD}]</key>
-                    <delay>30s;50s/1-7,00:00-24:00</delay>
-                    <applications>
-                        <application>
-                            <name>Bacula</name>
-                        </application>
-                    </applications>
-                    <triggers>
-                        <trigger>
-                            <expression>{last()}=0</expression>
-                            <name>Bacula Storage is DOWN in {HOST.NAME}</name>
-                            <priority>DISASTER</priority>
+                            <name>Bacula File Daemon is down on {HOST.NAME}</name>
+                            <priority>AVERAGE</priority>
                         </trigger>
                     </triggers>
                 </item>
@@ -333,7 +353,7 @@
                             <style>0</style>
                             <resource>
                                 <name>Backup Differential - Bytes transferred</name>
-                                <host>Template Bacula</host>
+                                <host>Template App Bacula Client</host>
                             </resource>
                             <width>500</width>
                             <height>100</height>
@@ -355,7 +375,7 @@
                             <style>0</style>
                             <resource>
                                 <name>Backup Differential - Files transferred</name>
-                                <host>Template Bacula</host>
+                                <host>Template App Bacula Client</host>
                             </resource>
                             <width>500</width>
                             <height>100</height>
@@ -377,7 +397,7 @@
                             <style>0</style>
                             <resource>
                                 <name>Backup Differential - Elapsed time</name>
-                                <host>Template Bacula</host>
+                                <host>Template App Bacula Client</host>
                             </resource>
                             <width>500</width>
                             <height>100</height>
@@ -399,7 +419,7 @@
                             <style>0</style>
                             <resource>
                                 <name>Backup Differential - Transfer rate</name>
-                                <host>Template Bacula</host>
+                                <host>Template App Bacula Client</host>
                             </resource>
                             <width>500</width>
                             <height>100</height>
@@ -421,7 +441,7 @@
                             <style>0</style>
                             <resource>
                                 <name>Backup Differential - Compression rate</name>
-                                <host>Template Bacula</host>
+                                <host>Template App Bacula Client</host>
                             </resource>
                             <width>500</width>
                             <height>100</height>
@@ -450,7 +470,7 @@
                             <style>0</style>
                             <resource>
                                 <name>Backup Full - Bytes transferred</name>
-                                <host>Template Bacula</host>
+                                <host>Template App Bacula Client</host>
                             </resource>
                             <width>500</width>
                             <height>100</height>
@@ -472,7 +492,7 @@
                             <style>0</style>
                             <resource>
                                 <name>Backup Full - Files transferred</name>
-                                <host>Template Bacula</host>
+                                <host>Template App Bacula Client</host>
                             </resource>
                             <width>500</width>
                             <height>100</height>
@@ -494,7 +514,7 @@
                             <style>0</style>
                             <resource>
                                 <name>Backup Full - Elapsed time</name>
-                                <host>Template Bacula</host>
+                                <host>Template App Bacula Client</host>
                             </resource>
                             <width>500</width>
                             <height>100</height>
@@ -516,7 +536,7 @@
                             <style>0</style>
                             <resource>
                                 <name>Backup Full - Transfer rate</name>
-                                <host>Template Bacula</host>
+                                <host>Template App Bacula Client</host>
                             </resource>
                             <width>500</width>
                             <height>100</height>
@@ -538,7 +558,7 @@
                             <style>0</style>
                             <resource>
                                 <name>Backup Full - Compression rate</name>
-                                <host>Template Bacula</host>
+                                <host>Template App Bacula Client</host>
                             </resource>
                             <width>500</width>
                             <height>100</height>
@@ -567,7 +587,7 @@
                             <style>0</style>
                             <resource>
                                 <name>Backup Incremental - Bytes transferred</name>
-                                <host>Template Bacula</host>
+                                <host>Template App Bacula Client</host>
                             </resource>
                             <width>500</width>
                             <height>100</height>
@@ -589,7 +609,7 @@
                             <style>0</style>
                             <resource>
                                 <name>Backup Incremental - Files transferred</name>
-                                <host>Template Bacula</host>
+                                <host>Template App Bacula Client</host>
                             </resource>
                             <width>500</width>
                             <height>100</height>
@@ -611,7 +631,7 @@
                             <style>0</style>
                             <resource>
                                 <name>Backup Incremental - Elapsed time</name>
-                                <host>Template Bacula</host>
+                                <host>Template App Bacula Client</host>
                             </resource>
                             <width>500</width>
                             <height>100</height>
@@ -633,7 +653,7 @@
                             <style>0</style>
                             <resource>
                                 <name>Backup Incremental - Transfer rate</name>
-                                <host>Template Bacula</host>
+                                <host>Template App Bacula Client</host>
                             </resource>
                             <width>500</width>
                             <height>100</height>
@@ -655,7 +675,7 @@
                             <style>0</style>
                             <resource>
                                 <name>Backup Incremental - Compression rate</name>
-                                <host>Template Bacula</host>
+                                <host>Template App Bacula Client</host>
                             </resource>
                             <width>500</width>
                             <height>100</height>
@@ -686,7 +706,7 @@
                     <drawtype>GRADIENT_LINE</drawtype>
                     <color>9999FF</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.diff.job.bytes</key>
                     </item>
                 </graph_item>
@@ -695,7 +715,7 @@
                     <drawtype>BOLD_LINE</drawtype>
                     <color>C80000</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.diff.job.status</key>
                     </item>
                 </graph_item>
@@ -709,7 +729,7 @@
                     <drawtype>GRADIENT_LINE</drawtype>
                     <color>FF9999</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.diff.job.compr</key>
                     </item>
                 </graph_item>
@@ -718,7 +738,7 @@
                     <drawtype>BOLD_LINE</drawtype>
                     <color>C80000</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.diff.job.status</key>
                     </item>
                 </graph_item>
@@ -732,7 +752,7 @@
                     <drawtype>GRADIENT_LINE</drawtype>
                     <color>00EEEE</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.diff.job.time</key>
                     </item>
                 </graph_item>
@@ -741,7 +761,7 @@
                     <drawtype>BOLD_LINE</drawtype>
                     <color>C80000</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.diff.job.status</key>
                     </item>
                 </graph_item>
@@ -755,7 +775,7 @@
                     <drawtype>GRADIENT_LINE</drawtype>
                     <color>00C800</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.diff.job.files</key>
                     </item>
                 </graph_item>
@@ -764,7 +784,7 @@
                     <drawtype>BOLD_LINE</drawtype>
                     <color>C80000</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.diff.job.status</key>
                     </item>
                 </graph_item>
@@ -778,7 +798,7 @@
                     <drawtype>GRADIENT_LINE</drawtype>
                     <color>CCCC00</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.diff.job.speed</key>
                     </item>
                 </graph_item>
@@ -787,7 +807,7 @@
                     <drawtype>BOLD_LINE</drawtype>
                     <color>C80000</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.diff.job.status</key>
                     </item>
                 </graph_item>
@@ -801,7 +821,7 @@
                     <drawtype>GRADIENT_LINE</drawtype>
                     <color>9999FF</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.full.job.bytes</key>
                     </item>
                 </graph_item>
@@ -810,7 +830,7 @@
                     <drawtype>BOLD_LINE</drawtype>
                     <color>C80000</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.full.job.status</key>
                     </item>
                 </graph_item>
@@ -824,7 +844,7 @@
                     <drawtype>GRADIENT_LINE</drawtype>
                     <color>FF9999</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.full.job.compr</key>
                     </item>
                 </graph_item>
@@ -833,7 +853,7 @@
                     <drawtype>BOLD_LINE</drawtype>
                     <color>C80000</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.full.job.status</key>
                     </item>
                 </graph_item>
@@ -847,7 +867,7 @@
                     <drawtype>GRADIENT_LINE</drawtype>
                     <color>00EEEE</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.full.job.time</key>
                     </item>
                 </graph_item>
@@ -856,7 +876,7 @@
                     <drawtype>BOLD_LINE</drawtype>
                     <color>C80000</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.full.job.status</key>
                     </item>
                 </graph_item>
@@ -870,7 +890,7 @@
                     <drawtype>GRADIENT_LINE</drawtype>
                     <color>00C800</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.full.job.files</key>
                     </item>
                 </graph_item>
@@ -879,7 +899,7 @@
                     <drawtype>BOLD_LINE</drawtype>
                     <color>C80000</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.full.job.status</key>
                     </item>
                 </graph_item>
@@ -893,7 +913,7 @@
                     <drawtype>GRADIENT_LINE</drawtype>
                     <color>CCCC00</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.full.job.speed</key>
                     </item>
                 </graph_item>
@@ -902,7 +922,7 @@
                     <drawtype>BOLD_LINE</drawtype>
                     <color>C80000</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.full.job.status</key>
                     </item>
                 </graph_item>
@@ -916,7 +936,7 @@
                     <drawtype>GRADIENT_LINE</drawtype>
                     <color>9999FF</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.incr.job.bytes</key>
                     </item>
                 </graph_item>
@@ -925,7 +945,7 @@
                     <drawtype>BOLD_LINE</drawtype>
                     <color>C80000</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.incr.job.status</key>
                     </item>
                 </graph_item>
@@ -939,7 +959,7 @@
                     <drawtype>GRADIENT_LINE</drawtype>
                     <color>FF9999</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.incr.job.compr</key>
                     </item>
                 </graph_item>
@@ -948,7 +968,7 @@
                     <drawtype>BOLD_LINE</drawtype>
                     <color>C80000</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.incr.job.status</key>
                     </item>
                 </graph_item>
@@ -962,7 +982,7 @@
                     <drawtype>GRADIENT_LINE</drawtype>
                     <color>00EEEE</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.incr.job.time</key>
                     </item>
                 </graph_item>
@@ -971,7 +991,7 @@
                     <drawtype>BOLD_LINE</drawtype>
                     <color>C80000</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.incr.job.status</key>
                     </item>
                 </graph_item>
@@ -985,7 +1005,7 @@
                     <drawtype>GRADIENT_LINE</drawtype>
                     <color>00C800</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.incr.job.files</key>
                     </item>
                 </graph_item>
@@ -994,7 +1014,7 @@
                     <drawtype>BOLD_LINE</drawtype>
                     <color>C80000</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.incr.job.status</key>
                     </item>
                 </graph_item>
@@ -1008,7 +1028,7 @@
                     <drawtype>GRADIENT_LINE</drawtype>
                     <color>CCCC00</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.incr.job.speed</key>
                     </item>
                 </graph_item>
@@ -1017,7 +1037,7 @@
                     <drawtype>BOLD_LINE</drawtype>
                     <color>C80000</color>
                     <item>
-                        <host>Template Bacula</host>
+                        <host>Template App Bacula Client</host>
                         <key>bacula.incr.job.status</key>
                     </item>
                 </graph_item>

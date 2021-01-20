@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zabbix_export>
+    <version>5.0</version>
+    <date>2021-01-20T10:02:24Z</date>
+    <groups>
+        <group>
+            <name>Templates</name>
+        </group>
+    </groups>
+    <templates>
+        <template>
+            <template>Template App Bacula Server</template>
+            <name>Template App Bacula Server</name>
+            <groups>
+                <group>
+                    <name>Templates</name>
+                </group>
+            </groups>
+            <applications>
+                <application>
+                    <name>Bacula</name>
+                </application>
+            </applications>
+            <items>
+                <item>
+                    <name>Bacula Director is running</name>
+                    <key>proc.num[{$BACULA.DIR}]</key>
+                    <delay>30s;50/1-7,00:00-24:00</delay>
+                    <applications>
+                        <application>
+                            <name>Bacula</name>
+                        </application>
+                    </applications>
+                    <triggers>
+                        <trigger>
+                            <expression>{last()}=0</expression>
+                            <name>Bacula Director is down on {HOST.NAME}</name>
+                            <priority>AVERAGE</priority>
+                        </trigger>
+                    </triggers>
+                </item>
+                <item>
+                    <name>Bacula Storage is running</name>
+                    <key>proc.num[{$BACULA.SD}]</key>
+                    <delay>30s;50s/1-7,00:00-24:00</delay>
+                    <applications>
+                        <application>
+                            <name>Bacula</name>
+                        </application>
+                    </applications>
+                    <triggers>
+                        <trigger>
+                            <expression>{last()}=0</expression>
+                            <name>Bacula Storage is down on {HOST.NAME}</name>
+                            <priority>AVERAGE</priority>
+                        </trigger>
+                    </triggers>
+                </item>
+            </items>
+            <macros>
+                <macro>
+                    <macro>{$BACULA.DIR}</macro>
+                    <value>bacula-dir</value>
+                </macro>
+                <macro>
+                    <macro>{$BACULA.FD}</macro>
+                    <value>bacula-fd</value>
+                </macro>
+                <macro>
+                    <macro>{$BACULA.SD}</macro>
+                    <value>bacula-sd</value>
+                </macro>
+            </macros>
+            <screens>
+                <screen>
+                    <name>Backup Differential</name>
+                    <hsize>2</hsize>
+                    <vsize>3</vsize>
+                </screen>
+                <screen>
+                    <name>Backup Full</name>
+                    <hsize>2</hsize>
+                    <vsize>3</vsize>
+                </screen>
+                <screen>
+                    <name>Backup Incremental</name>
+                    <hsize>2</hsize>
+                    <vsize>3</vsize>
+                </screen>
+            </screens>
+        </template>
+    </templates>
+</zabbix_export>
