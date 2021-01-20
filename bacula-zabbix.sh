@@ -9,9 +9,6 @@ clientName=${clientName:-Client.Name}
 baculaJobId="$1"
 if [ -z "$baculaJobId" ] ; then exit 3 ; fi
 
-# Test if zabbix_sender exists and execute permission is granted, if not, exit
-if [ ! -x "$zabbixSender" ] ; then exit 5 ; fi
-
 # Chose which database command to use
 case "$baculaDbSgdb" in
   P) sql="PGPASSWORD=$baculaDbPass $psqlBinary -h$baculaDbAddr -p$baculaDbPort -U$baculaDbUser -d$baculaDbName -c" ;;
